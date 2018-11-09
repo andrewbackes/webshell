@@ -7,6 +7,7 @@ import (
 	"github.com/pborman/uuid"
 	"net/http"
 	"sync"
+	"time"
 )
 
 var (
@@ -24,13 +25,14 @@ type Server struct {
 
 // Message received from a websocket.
 type Message struct {
-	ID    string
-	Value []byte
-	From  string
+	ID        string
+	Timestamp time.Time
+	Value     []byte
+	From      string
 }
 
 func (m Message) String() string {
-	return fmt.Sprintf("{ID:%v, From:%v, Value:%v}", m.ID, m.From, string(m.Value))
+	return fmt.Sprintf("{Timestamp:%v, ID:%v, From:%v, Value:%v}", m.Timestamp, m.ID, m.From, string(m.Value))
 }
 
 // Option for constructing a Server.
@@ -93,9 +95,10 @@ func (s *Server) UpgradeHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 			s.msgHandler(Message{
-				ID:    uuid.New(),
-				Value: message,
-				From:  id,
+				Timestamp: time.Now(),
+				ID:        uuid.New(),
+				Value:     message,
+				From:      id,
 			})
 		}
 		fmt.Printf("Stopped listening to client %v.\n", id)

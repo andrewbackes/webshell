@@ -47,10 +47,10 @@ export default class Terminal extends Component {
             this2.receiveLine(event.data);
         };
         this.ws.onclose = function () {
-            console.log("Websocket closed");
+            this2.receiveLine("Websocket closed.");
         };
         this.ws.onerror = function (event) {
-            console.error("WebSocket error observed:", event);
+            this2.receiveLine("WebSocket error: " + event);
         };
     }
 
