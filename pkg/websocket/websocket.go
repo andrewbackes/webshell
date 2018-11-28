@@ -20,7 +20,7 @@ type Server struct {
 	sync.RWMutex
 	websockets map[string]*websocket.Conn
 	upgrader   websocket.Upgrader
-	msgHandler func(Message)
+	handler    func(Message)
 }
 
 // Message received from a websocket.
@@ -38,21 +38,21 @@ func (m Message) String() string {
 // Option for constructing a Server.
 type Option func(*Server) error
 
-// MessageHandler sets the function to be called when a message is received.
-func MessageHandler(h func(Message)) Option {
+// Handler sets the function to be called when a message is received.
+func Handler(h func(Message)) Option {
 	return func(s *Server) error {
-		s.msgHandler = h
+		s.handler = h
 		return nil
 	}
 }
 
 // NewServer for managing websockets.
 func NewServer(opts ...Option) *Server {
-	defaultMessageHandler := func(m Message) {
+	defaultHandler := func(m Message) {
 		fmt.Println(m)
 	}
 	s := &Server{
-		msgHandler: defaultMessageHandler,
+		handler:    defaultHandler,
 		websockets: make(map[string]*websocket.Conn),
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  2048,
@@ -94,7 +94,7 @@ func (s *Server) UpgradeHandler(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 			message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-			s.msgHandler(Message{
+			s.handler(Message{
 				Timestamp: time.Now(),
 				ID:        uuid.New(),
 				Value:     message,
@@ -108,7 +108,7 @@ func (s *Server) UpgradeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Write a message to all websockets.
-func (s *Server) Write(data []byte) {
+func (s *Server) Write(data []byte) (n int, err error) {
 	s.RLock()
 	for id, conn := range s.websockets {
 		err := conn.WriteMessage(websocket.TextMessage, data)
@@ -118,6 +118,7 @@ func (s *Server) Write(data []byte) {
 		}
 	}
 	s.RUnlock()
+	return len(data), nil
 }
 
 func (s *Server) terminate(connID string) {
