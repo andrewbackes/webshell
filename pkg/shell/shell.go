@@ -12,9 +12,14 @@ const sh = "sh"
 // Run a shell command.
 func Run(command []byte, stdOut io.Writer) {
 	cmd := exec.Command(sh, "-c", string(command))
-	stdout, err := cmd.StdoutPipe()
+	out, err := cmd.StdoutPipe()
 	if err != nil {
 		fmt.Printf("Could not get pipe for stdout - %v", err)
+		return
+	}
+	errOut, err := cmd.StderrPipe()
+	if err != nil {
+		fmt.Printf("Could not get pipe for stderr - %v", err)
 		return
 	}
 	err = cmd.Start()
@@ -23,12 +28,15 @@ func Run(command []byte, stdOut io.Writer) {
 		return
 	}
 	go func() {
-		scanner := bufio.NewScanner(stdout)
+		scanner := bufio.NewScanner(out)
 		for scanner.Scan() {
 			stdOut.Write(scanner.Bytes())
 		}
-		if err := scanner.Err(); err != nil {
-			fmt.Printf("Error reading stdout - %v", err)
+	}()
+	go func() {
+		scanner := bufio.NewScanner(errOut)
+		for scanner.Scan() {
+			stdOut.Write(scanner.Bytes())
 		}
 	}()
 	err = cmd.Wait()

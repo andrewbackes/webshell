@@ -35,7 +35,12 @@ export default class Terminal extends Component {
             } else if (key === 'Backspace' || key === 8) {
                 this2.setState({ input: this2.state.input.slice(0, -1) });
             } else {
-                this2.setState({ input: this2.state.input + key });
+                // invalid: 0-46, 91-105, 112-145
+                const k = event.keyCode;
+                const invalid = (k < 32) || (k > 32 && k < 47) || (k > 90 && k < 106) || (k > 111 && k < 146);
+                if (!invalid) {
+                    this2.setState({ input: this2.state.input + key });
+                }
             }
         });
     }
