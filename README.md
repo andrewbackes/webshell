@@ -2,6 +2,10 @@
 Shell interaction over the web. Users can run a command from a terminal in a web browser on the backend system running the API. It is meant to be added as an admin portal to a backend service. Of course you should be careful with it since you are allowing users to execute whatever they want over the web.
 
 ## How does it work?
+Webshell uses websockets to communicate between the browser and the backend. It also uses GitHub OAuth2 for authentication and authorization and keeps track of user sessions.
+
+Users can send commands through a web ui that looks similar to a terminal window. The commands run on the backend where the API lives.
+
 There are two pieces. The frontend webapp is done with React and found in `webapp/`. The backend app is written in Go and can be found in `cmd/`.
 
 ## How do I run it?
