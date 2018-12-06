@@ -46,7 +46,7 @@ export default class Terminal extends Component {
     }
 
     initWebsocket() {
-        this.ws = new WebSocket("ws://localhost:8080/websocket");
+        this.ws = new WebSocket(((window.location.protocol === "https:") ? "wss://" : "ws://") + window.location.host + "/websocket");
         const this2 = this;
         this.ws.onmessage = function (event) {
             this2.receiveLine(event.data);
