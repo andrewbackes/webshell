@@ -7,21 +7,16 @@ import (
 	"github.com/andrewbackes/webshell/pkg/shell"
 	"github.com/andrewbackes/webshell/pkg/websocket"
 	"net/http"
+	"os"
 )
 
 const (
-	authConfigFile = "auth_config.json"
+	authConfigFile    = "auth_config.json"
+	authEnabledEnvVar = "AUTH_ENABLED"
 )
 
 func main() {
 	fmt.Println("WebShell started.")
-	// Handler for the react app. It must be built prior to running.
-	sessions := session.New()
-	gh := github.New(authConfigFile, sessions)
-	http.HandleFunc("/", sessions.Middleware(func(w http.ResponseWriter, r *http.Request) {
-		fs := http.FileServer(http.Dir("webapp/build"))
-		fs.ServeHTTP(w, r)
-	}))
 
 	var ws *websocket.Server
 	ws = websocket.NewServer(websocket.Handler(func(m websocket.Message) {
@@ -30,8 +25,24 @@ func main() {
 		go shell.Run(m.Value, ws)
 	}))
 
-	http.HandleFunc("/websocket", sessions.Middleware(ws.UpgradeHandler))
-	http.HandleFunc("/auth/login", gh.Login)
-	http.HandleFunc("/auth/callback", gh.Callback)
+	if os.Getenv(authEnabledEnvVar) == "true" {
+		fmt.Println("Auth enabled.")
+		sessions := session.New()
+		gh := github.New(authConfigFile, sessions)
+		http.HandleFunc("/auth/login", gh.Login)
+		http.HandleFunc("/auth/callback", gh.Callback)
+		http.HandleFunc("/", sessions.Middleware(staticHandler))
+		http.HandleFunc("/websocket", sessions.Middleware(ws.UpgradeHandler))
+	} else {
+		http.HandleFunc("/", staticHandler)
+		http.HandleFunc("/websocket", ws.UpgradeHandler)
+	}
+
 	http.ListenAndServe(":8080", nil)
+}
+
+// Handler for the react app. It must be built prior to running.
+func staticHandler(w http.ResponseWriter, r *http.Request) {
+	fs := http.FileServer(http.Dir("webapp/build"))
+	fs.ServeHTTP(w, r)
 }

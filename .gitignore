@@ -13,3 +13,4 @@
 node_modules/
 vendor/
 config.json
+auth_config.json

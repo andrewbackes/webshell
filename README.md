@@ -27,3 +27,24 @@ $ go run cmd/webshell.go
 docker build -t webshell .
 docker run --rm -p 8080:8080 webshell
 ```
+
+## Auth
+You can turn on OAuth2 with GitHub as the provider. To do so you will need to do three things:
+1. [Add an OAuth app your GitHub account](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/).
+2. Set the `AUTH_ENABLED=true` environment variable before running.
+3. Create the file `./auth_config.json` using `./auth_config_schema.json` as a template.
+
+### Example
+An example of setting up auth:
+```
+$ cat <<EOF >auth_config.json
+{
+    "ClientID": "abc",
+    "ClientSecret": "123",
+    "RedirectURL": "http://localhost:8080",
+    "AuthorizedUsers": ["andrewbackes"]
+}
+EOF
+$ export AUTH_ENABLED=true
+$ go run cmd/webshell.go
+```

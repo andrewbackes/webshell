@@ -1,10 +1,6 @@
 {
     "ClientID": "",
     "ClientSecret": "",
-    "Endpoint": {
-        "AuthURL": "",
-        "TokenURL": ""
-    },
     "RedirectURL": "",
-    "Scopes": []
+    "AuthorizedUsers": []
 }

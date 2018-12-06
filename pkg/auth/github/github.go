@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"golang.org/x/oauth2"
+	ghoauth2 "golang.org/x/oauth2/github"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -35,6 +36,7 @@ func New(filename string, s SessionCreator) *GitHub {
 		panic(err)
 	}
 	github := &GitHub{}
+	github.Endpoint = ghoauth2.Endpoint
 	err = json.NewDecoder(f).Decode(github)
 	if err != nil {
 		panic(err)
